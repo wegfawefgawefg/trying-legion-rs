@@ -24,7 +24,10 @@ struct State {
 
 pub fn init(ecs: &mut World) {
     let _entities: &[Entity] = ecs.extend(vec![
-        (Position { x: 0.0, y: 0.0 }, Velocity { dx: 0.01, dy: 0.0 }),
+        (
+            Position { x: 320.0, y: 240.0 },
+            Velocity { dx: 1.0, dy: 0.5 },
+        ),
         // (Position { x: 0.0, y: 0.0 }, Velocity { dx: 0.01, dy: 0.01 }),
         // (Position { x: 1.0, y: 1.0 }, Velocity { dx: 0.01, dy: 0.01 }),
         // (Position { x: 2.0, y: 2.0 }, Velocity { dx: 0.01, dy: 0.01 }),
@@ -52,17 +55,18 @@ impl State {
 fn main() {
     let (mut rl, thread) = raylib::init().size(640, 480).title("Hello, ecs").build();
     rl.set_target_fps(60);
-    let mut ecs = World::default();
-    let mut resources = legion::Resources::default();
-    // resources.insert(rl);
+    let mut state = State::new();
 
     while !rl.window_should_close() {
+        state.systems.execute(&mut state.ecs, &mut state.resources);
+
         {
             let mut draw = rl.begin_drawing(&thread);
             draw.clear_background(Color::WHITE);
             draw.draw_text("Hello, ecs!", 12, 12, 20, Color::BLACK);
+            for pos in <&Position>::query().iter(&state.ecs) {
+                draw.draw_circle(pos.x as i32, pos.y as i32, 10.0, Color::RED);
+            }
         }
-        resources.insert(&thread);
-        schedule.execute(&mut ecs, &mut resources);
     }
 }
